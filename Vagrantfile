@@ -1,5 +1,9 @@
 # -*- mode: ruby -*-
 
+File.open('inventory.txt', 'w') do |fd|
+  fd << "10.0.254.254 ansible_ssh_private_key_file=.vagrant/machines/default/libvirt/private_key\n"
+end
+
 Vagrant.configure(2) do |config|
   config.vm.box = "baremettle/ubuntu-14.04"
   # config.vm.box_check_update = false
