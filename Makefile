@@ -8,7 +8,7 @@ PIP=$(VENV)/bin/pip
 venv: $(VENV)/bin/activate
 
 $(VENV)/bin/activate: requirements.txt
-	test -d $(VENV) || virtualenv $(VENV)
+	test -d $(VENV) || virtualenv --system-site-packages $(VENV)
 	$(PIP) install -U  pip requests[security]
 	$(PIP) install -Ur requirements.txt
 	touch $@
