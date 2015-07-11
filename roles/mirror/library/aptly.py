@@ -99,6 +99,16 @@ def mirror_update_idempotent(name, within):
         return False
 
 
+def snapshot_create_idempotent(name, within):
+    raise NotImplementedError
+
+
+def fail_subprocess(module, e, msg):
+    module.fail_json(msg=msg,
+                     cmd=e.cmd, retcode=e.retcode,
+                     stdout=e.stdout, stderr=e.stderr)
+
+
 def main():
 
     module = AnsibleModule(
@@ -137,9 +147,7 @@ def main():
                     architectures=module.params['architectures'],
                 )
             except pxul.subprocess.CalledProcessError, e:
-                module.fail_json(msg='failed to create the mirror',
-                                 cmd=e.cmd, retcode=e.retcode,
-                                 stdout=e.stdout, stderr=e.stderr)
+                fail_subprocess(module, e, 'failed to create the mirror')
             except Exception, e:
                 module.fail_json(msg='Failure {}'.format(e), traceback=traceback.format_exc())
             else:
@@ -152,9 +160,7 @@ def main():
                     module.params['name'],
                     module.params['within'])
             except pxul.subprocess.CalledProcessError, e:
-                module.fail_json(msg='failed to update the mirror',
-                                 cmd=e.cmd, retcode=e.retcode,
-                                 stdout=e.stdout, stderr=e.stderr)
+                fail_subprocess(module, e, 'failed to update the mirror')
             except Exception, e:
                 module.fail_json(msg='Failure {}'.format(e), traceback=traceback.format_exc())
             else:
