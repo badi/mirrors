@@ -1,2 +1,4 @@
 vault.txt
 inventory.txt
+.vagrant
+venv
