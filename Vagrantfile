@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
   # using a specific IP.
   config.vm.network :private_network, :ip => "10.0.254.254", :netmask => "255.255.0.0"
 
-  config.vm.synced_folder ".", "/vagrant"
+  # config.vm.synced_folder ".", "/vagrant"
 
   config.vm.provider "libvirt" do |machine|
     machine.cpus = 1
