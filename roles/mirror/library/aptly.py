@@ -64,6 +64,7 @@ def mirror_create_idempotent(name, *args, **kws):
         mirror_create(name, *args, **kws)
         return True
 
+
 def main():
 
     module = AnsibleModule(
@@ -104,6 +105,8 @@ def main():
             module.exit_json(changed=changed)
 
     # elif module.params['action'] == 'update':
+
+        
 
 
 from ansible.module_utils.basic import *
