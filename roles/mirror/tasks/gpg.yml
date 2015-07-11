@@ -15,9 +15,11 @@
               gpg --batch --gen-key {{ mirror_gpg_tempfile }}
 
 - name: (gpg) Remove temporary file
+  sudo: no
   file: path={{ mirror_gpg_tempfile }} state=absent
 
 - name: (gpg) Copy over the generated keys
+  sudo: no
   copy:
     src={{ item }}
     dest={{ item }}
@@ -27,6 +29,7 @@
     - "{{ mirror_gpg_secfile }}"
 
 - name: (gpg) Import the keys
+  sudo: no
   shell: gpg --import "{{ mirror_gpg_pubfile }}"
   shell: gpg --allow-secret-key-import --import "{{ mirror_gpg_secfile }}"
 
@@ -41,6 +44,7 @@
     - "{{ mirror_gpg_secfile }}"
 
 - name: (gpg) Cleanup remote
+  sudo: no
   file:
     path="{{ item }}"
     state=absent
