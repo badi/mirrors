@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime
+
 try:
     import pxul.subprocess
 except ImportError:
@@ -65,6 +67,38 @@ def mirror_create_idempotent(name, *args, **kws):
         return True
 
 
+def mirror_update(name):
+    aptly('mirror', 'update', name)
+
+
+def last_mirror_update(name):
+    lines = aptly('mirror', 'show', name).out.split('\n')
+    matches = filter(lambda s: s.startswith('Last update:'),
+                     lines)
+    assert len(matches) == 1, len(matches)
+    entry = matches[0]
+    last_update = entry.split(': ')[1]
+
+    if last_update == 'never':
+        return datetime.datetime.min
+    else:
+        return datetime.datetime.strptime(
+            last_update,
+            '%Y-%m-%d %H:%M:%S %Z'
+        )
+
+
+def mirror_update_idempotent(name, within):
+    last_update = last_mirror_update(name)
+    delta = datetime.datetime.utcnow() - last_update
+
+    if delta.total_seconds() > within:
+        mirror_update(name)
+        return True
+    else:
+        return False
+
+
 def main():
 
     module = AnsibleModule(
@@ -73,6 +107,10 @@ def main():
                         'choices': 'mirror snapshot'.split()},
             'verb': {'required': False},
             'name': {'required': True},
+            'within': {'required': False,
+                       'type': 'int',
+                       'default': 0},
+
             'uri': {'required': False},
             'distribution': {'required': False},
             'components': {'type': 'list',
@@ -103,13 +141,24 @@ def main():
                                  cmd=e.cmd, retcode=e.retcode,
                                  stdout=e.stdout, stderr=e.stderr)
             except Exception, e:
-                module.fail_json(msg='Failure {}'.format(e))
+                module.fail_json(msg='Failure {}'.format(e), traceback=traceback.format_exc())
             else:
                 module.exit_json(changed=changed)
 
-    # elif module.params['action'] == 'update':
-        
-
+        elif module.params['verb'] == 'update':
+            # aptly mirror update <name>
+            try:
+                changed = mirror_update_idempotent(
+                    module.params['name'],
+                    module.params['within'])
+            except pxul.subprocess.CalledProcessError, e:
+                module.fail_json(msg='failed to update the mirror',
+                                 cmd=e.cmd, retcode=e.retcode,
+                                 stdout=e.stdout, stderr=e.stderr)
+            except Exception, e:
+                module.fail_json(msg='Failure {}'.format(e), traceback=traceback.format_exc())
+            else:
+                module.exit_json(changed=changed)
 
 from ansible.module_utils.basic import *
 

@@ -47,3 +47,12 @@
     components: "{{ item.components }}"
     architectures: "{{ item.architectures | default(None)}}"
   with_items: mirrors
+
+- name: Update the aptly mirrors
+  sudo: no
+  aptly:
+    subject: mirror
+    verb: update
+    name: "{{ item.name }}"
+    within: "{{ item.update_within | default(0) }}"
+  with_items: mirrors
