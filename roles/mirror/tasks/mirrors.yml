@@ -54,7 +54,7 @@
     subject: mirror
     verb: update
     name: "{{ item.name }}"
-    within: "{{ item.update_within | default(0) }}"
+    within: "{{ item.within | default(0) }}"
   with_items: mirrors
 
 - name: Create a snapshot

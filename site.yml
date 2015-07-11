@@ -21,7 +21,7 @@
           components: ['main']
           trusted_key: 2A194991
           architectures: ['amd64']
-          update_within: "{{ 60*60 }}"
+          within: "{{ 60*60 }}"
 
         # - name: openstack-kilo-trusty
         #   uri: http://ubuntu-cloud.archive.canonical.com/ubuntu
