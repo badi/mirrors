@@ -75,7 +75,7 @@ def main():
             'uri': {'required': False},
             'distribution': {'required': False},
             'components': {'type': 'list',
-                           'required': True},
+                           'required': False},
             'architectures': {'type': 'list'}
             
         },
