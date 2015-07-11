@@ -69,8 +69,9 @@ def main():
 
     module = AnsibleModule(
         argument_spec = {
-            'action': {'required': True,
-                       'choices': ['create', 'update', 'snapshot', 'repo']},
+            'subject': {'required': True,
+                        'choices': 'mirror snapshot'.split()},
+            'verb': {'required': False},
             'name': {'required': True},
             'uri': {'required': False},
             'distribution': {'required': False},
@@ -81,31 +82,32 @@ def main():
         },
 
         required_together = [
+            ['subject', 'verb'],
             ['uri', 'distribution', 'components']
         ],
 
     )
 
-    if module.params['action'] == 'create':
-        try:
-            changed = mirror_create_idempotent(
-                module.params['name'],
-                module.params['uri'],
-                module.params['distribution'],
-                module.params['components'],
-                architectures=module.params['architectures'],
-            )
-        except pxul.subprocess.CalledProcessError, e:
-            module.fail_json(msg='failed to create the mirror',
-                             cmd=e.cmd, retcode=e.retcode,
-                             stdout=e.stdout, stderr=e.stderr)
-        except Exception, e:
-            module.fail_json(msg='Failure {}'.format(e))
-        else:
-            module.exit_json(changed=changed)
+    if module.params['subject'] == 'mirror':
+        if module.params['verb'] == 'create':
+            try:
+                changed = mirror_create_idempotent(
+                    module.params['name'],
+                    module.params['uri'],
+                    module.params['distribution'],
+                    module.params['components'],
+                    architectures=module.params['architectures'],
+                )
+            except pxul.subprocess.CalledProcessError, e:
+                module.fail_json(msg='failed to create the mirror',
+                                 cmd=e.cmd, retcode=e.retcode,
+                                 stdout=e.stdout, stderr=e.stderr)
+            except Exception, e:
+                module.fail_json(msg='Failure {}'.format(e))
+            else:
+                module.exit_json(changed=changed)
 
     # elif module.params['action'] == 'update':
-
         
 
 

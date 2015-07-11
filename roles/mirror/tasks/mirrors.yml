@@ -39,7 +39,8 @@
 - name: Create the aptly mirrors
   sudo: no
   aptly:
-    action: "create"
+    subject: mirror
+    verb: create
     name: "{{ item.name }}"
     uri: "{{ item.uri }}"
     distribution: "{{ item.distribution }}"
