@@ -33,10 +33,16 @@ def mirror_list():
 
 
 def mirror_exists(name):
-    for existing_name, _, _ in mirror_list():
-        if name == existing_name:
-            return True
-    return False
+    try:
+        aptly('mirror', 'show', name)
+    except pxul.subprocess.CalledProcessError, e:
+        if e.stdout.strip().endswith('mirror with name {} not found'.
+                                     format(name)):
+            return False
+        else:
+            raise
+    else:
+        return True
 
 
 def mirror_create(name, uri, distribution, components, architectures=None):
@@ -48,10 +54,7 @@ def mirror_create(name, uri, distribution, components, architectures=None):
     args = ['mirror', 'create'] + extra_args + \
            [name, uri, distribution, ' '.join(components)]
 
-    try:
-        result = aptly(*args)
-    except pxul.subprocess.CalledProcessError, e:
-        raise MirrorCreateError(e.cmd, e.retcode, e.stdout, e.stderr)
+    aptly(*args)
 
                        
 def mirror_create_idempotent(name, *args, **kws):
