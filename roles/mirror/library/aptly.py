@@ -71,28 +71,38 @@ def mirror_update(name):
     aptly('mirror', 'update', name)
 
 
-def last_mirror_update(name):
-    lines = aptly('mirror', 'show', name).out.split('\n')
-    matches = filter(lambda s: s.startswith('Last update:'),
+def last_change_time(lines, entryname):
+    matches = filter(lambda s: s.startswith(entryname),
                      lines)
-    assert len(matches) == 1, len(matches)
+    assert len(matches) == 1, matches
     entry = matches[0]
-    last_update = entry.split(': ')[1]
+    parts = entry.split(': ', 1)
+    assert len(parts) == 2, parts
+    when = parts[1]
 
-    if last_update == 'never':
+    if when == 'never':
         return datetime.datetime.min
     else:
         return datetime.datetime.strptime(
-            last_update,
+            when,
             '%Y-%m-%d %H:%M:%S %Z'
         )
 
 
-def mirror_update_idempotent(name, within):
-    last_update = last_mirror_update(name)
-    delta = datetime.datetime.utcnow() - last_update
+def within_window(when, within):
+    delta = datetime.datetime.utcnow() - when
 
-    if delta.total_seconds() > within:
+    if delta.total_seconds() <= within:
+        return True
+    else:
+        return False
+
+
+def mirror_update_idempotent(name, within):
+    lines = aptly('mirror', 'show', name).out.split('\n')
+    last_update = last_change_time(lines, 'Last update:')
+
+    if not within_window(last_update, within):
         mirror_update(name)
         return True
     else:
