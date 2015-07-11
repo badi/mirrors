@@ -109,8 +109,47 @@ def mirror_update_idempotent(name, within):
         return False
 
 
+def create_snapshot_name(name, time):
+    time = time.isoformat()
+    return '{name}_UTC-{time}'.format(**locals())
+
+
+def snapshot_create(name):
+    now = datetime.datetime.utcnow()
+    snapname = create_snapshot_name(name, now)
+    aptly('snapshot', 'create', snapname, 'from', 'mirror', name)
+
+
+def snapshot_list():
+    result = aptly('snapshot', '-raw', '-sort=time', 'list')
+    return result.out.split('\n')
+
+
+def most_recent_snapshot(name):
+    for snap in reversed(snapshot_list()):
+        if snap.startswith(name):
+            return snap
+    time = datetime.datetime.min.replace(microsecond = 1)
+    return create_snapshot_name(name, time)
+
+
 def snapshot_create_idempotent(name, within):
-    raise NotImplementedError
+
+    last_snap = most_recent_snapshot(name)
+    parts = last_snap.split('_', 1)
+    assert len(parts) == 2, parts
+    timestr = parts[1]
+
+    last = datetime.datetime.strptime(
+        timestr,
+        'UTC-%Y-%m-%dT%H:%M:%S.%f'
+    )
+
+    if not within_window(last, within):
+        snapshot_create(name)
+        return True
+    else:
+        return False
 
 
 def fail_subprocess(module, e, msg):
@@ -175,6 +214,22 @@ def main():
                 module.fail_json(msg='Failure {}'.format(e), traceback=traceback.format_exc())
             else:
                 module.exit_json(changed=changed)
+
+    elif module.params['subject'] == 'snapshot':
+        if module.params['verb'] == 'create':
+            # snapshot create <name>-{timestamp} from mirror <name>
+            try:
+                changed = snapshot_create_idempotent(
+                    module.params['name'],
+                    module.params['within'])
+            except pxul.subprocess.CalledProcessError, e:
+                fail_subprocess(module, e, 'failed to create the snapshot')
+            except Exception, e:
+                module.fail_json(msg='Failure {}'.format(e),
+                                 traceback=traceback.format_exc())
+            else:
+                module.exit_json(changed=changed)
+
 
 from ansible.module_utils.basic import *
 

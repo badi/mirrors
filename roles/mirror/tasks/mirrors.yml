@@ -56,3 +56,12 @@
     name: "{{ item.name }}"
     within: "{{ item.update_within | default(0) }}"
   with_items: mirrors
+
+- name: Create a snapshot
+  sudo: no
+  aptly:
+    subject: snapshot
+    verb: create
+    name: "{{ item.name }}"
+    within: "{{ item.within | default(0) }}"
+  with_items: mirrors
