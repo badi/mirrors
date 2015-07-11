@@ -1,0 +1,48 @@
+---
+
+- meta: flush_handlers
+
+- name: Install required packages
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - aptly
+    - gnupg2
+    - python-dev
+    - python-pip
+    - python-gnupg
+    - libffi-dev
+    - git-core
+
+- name: Upgrade Pip
+  pip:
+    name={{ item }}
+    state=latest
+  with_items:
+    - requests[security]
+    - pip
+
+- name: Install Pxul
+  pip:
+    name="git+https://github.com/badi/pxul.git@v2.0#egg=pxul"
+    state=present
+
+- name: Import the mirror keys
+  sudo: no
+  gpg_import:
+    key: "{{ item.trusted_key }}"
+    keyring: "{{ item.keyring | default('trustedkeys.gpg') }}"
+    keyserver: "{{ item.keyserver | default('keys.gnupg.net') }}"
+  with_items: mirrors
+
+- name: Create the aptly mirrors
+  sudo: no
+  aptly:
+    action: "create"
+    name: "{{ item.name }}"
+    uri: "{{ item.uri }}"
+    distribution: "{{ item.distribution }}"
+    components: "{{ item.components }}"
+    architectures: "{{ item.architectures | default(None)}}"
+  with_items: mirrors
