@@ -56,7 +56,7 @@ def mirror_create(name, uri, distribution, components, architectures=None):
 
     aptly(*args)
 
-                       
+
 def mirror_create_idempotent(name, *args, **kws):
     if mirror_exists(name):
         return False
