@@ -1,0 +1,16 @@
+---
+
+mirror_gpg_tempfile: /tmp/gengpg
+mirror_gpg_pubfile: /tmp/gpg.pub
+mirror_gpg_secfile: /tmp/gpg.sec
+
+mirror_gpg_key_type: RSA
+mirror_gpg_key_length: 2048
+mirror_gpg_expire_date: 0
+mirror_gpg_name_comment: Signing repos
+
+## required, so not defined:
+# mirror_gpg_password: super-top-secret-password
+# mirror_gpg_name_real: First Last
+# mirror_gpg_name_email: me@example.com
+    

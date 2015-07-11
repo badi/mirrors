@@ -1,0 +1,12 @@
+%echo Generating a basic OpenPGP key
+Key-Type: {{ mirror_gpg_key_type }}
+Key-Length: {{ mirror_gpg_key_length }}
+Expire-Date: {{ mirror_gpg_expire_date }}
+Name-Real: {{ mirror_gpg_name_real }}
+Name-Comment: {{ mirror_gpg_name_comment }}
+Name-Email: {{ mirror_gpg_name_email }}
+Passphrase: {{ mirror_gpg_password }}
+%pubring {{ mirror_gpg_pubfile }}
+%secring {{ mirror_gpg_secfile }}
+%commit
+%echo Done

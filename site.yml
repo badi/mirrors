@@ -1,0 +1,29 @@
+---
+
+- hosts: all
+  user: vagrant
+  sudo: yes
+  vars_files:
+    # - vars/vars.yml
+    - vars/secret.yml
+  roles:
+    - role: mirror
+
+      mirror_gpg_password: "{{ secret.gpg.password }}"
+      mirror_gpg_name_real: Badi Abdul-Wahid
+      mirror_gpg_name_email: abdulwahidc@gmail.com
+
+      mirrors:
+
+        - name: aptly-squeeze-amd64
+          uri: "http://repo.aptly.info/"
+          distribution: "squeeze"
+          components: ['main']
+          trusted_key: 2A194991
+          architectures: ['amd64']
+
+        # - name: openstack-kilo-trusty
+        #   uri: http://ubuntu-cloud.archive.canonical.com/ubuntu
+        #   distribution: trusty-updates/kilo
+        #   components: ['main']
+        #   trusted_key: EC4926EA

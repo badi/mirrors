@@ -1,0 +1,49 @@
+---
+
+- name: (gpg) Write the GPG key parameter files on host
+  sudo: false
+  local_action:
+    module: template
+              src=gengpg.j2
+              dest={{ mirror_gpg_tempfile }}
+              mode=0600
+
+- name: (gpg) Create the GPG key on host
+  sudo: false
+  local_action:
+    module: shell
+              gpg --batch --gen-key {{ mirror_gpg_tempfile }}
+
+- name: (gpg) Remove temporary file
+  file: path={{ mirror_gpg_tempfile }} state=absent
+
+- name: (gpg) Copy over the generated keys
+  copy:
+    src={{ item }}
+    dest={{ item }}
+    mode=0600
+  with_items:
+    - "{{ mirror_gpg_pubfile }}"
+    - "{{ mirror_gpg_secfile }}"
+
+- name: (gpg) Import the keys
+  shell: gpg --import "{{ mirror_gpg_pubfile }}"
+  shell: gpg --allow-secret-key-import --import "{{ mirror_gpg_secfile }}"
+
+- name: (gpg) Cleanup host
+  sudo: no
+  local_action:
+    module: file
+              path="{{ item }}"
+              state=absent
+  with_items:
+    - "{{ mirror_gpg_pubfile }}"
+    - "{{ mirror_gpg_secfile }}"
+
+- name: (gpg) Cleanup remote
+  file:
+    path="{{ item }}"
+    state=absent
+  with_items:
+    - "{{ mirror_gpg_pubfile }}"
+    - "{{ mirror_gpg_secfile }}"
