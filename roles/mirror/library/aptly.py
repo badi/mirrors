@@ -94,10 +94,12 @@ def main():
                 module.params['components'],
                 architectures=module.params['architectures'],
             )
-        except MirrorCreateError, e:
+        except pxul.subprocess.CalledProcessError, e:
             module.fail_json(msg='failed to create the mirror',
                              cmd=e.cmd, retcode=e.retcode,
                              stdout=e.stdout, stderr=e.stderr)
+        except Exception, e:
+            module.fail_json(msg='Failure {}'.format(e))
         else:
             module.exit_json(changed=changed)
 
