@@ -58,7 +58,7 @@
     within: "{{ item.within | default(0) }}"
   with_items: mirrors
 
-- name: Create a snapshot
+- name: Create snapshots
   sudo: no
   aptly:
     subject: snapshot
