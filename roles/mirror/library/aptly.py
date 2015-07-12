@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import pexpect as expect
+from pipes import quote
+from StringIO import StringIO
 
 try:
     import pxul.subprocess
@@ -158,12 +161,57 @@ def fail_subprocess(module, e, msg):
                      stdout=e.stdout, stderr=e.stderr)
 
 
+def already_published(name):
+    return name in aptly('publish', 'list').out
+
+
+def publish_snapshot(name, passphrase=None):
+    snapshot = most_recent_snapshot(name)
+    if snapshot is None:
+        raise ValueError('Snapshot not found for {}'.format(name))
+
+    # Regular Popen.communicate or Popen.stdin.write would not work
+    # correctly. My guess is that the aptly executable itself call out
+    # to the gpg command and sending the input through several levels
+    # does not work correctly. Using the `pexpect` api works though.
+
+    cmdlist = ['aptly', 'publish', 'snapshot', snapshot]
+    cmd = ' '.join(map(quote, cmdlist))
+
+    output = StringIO()
+
+    child = expect.spawn(cmd, logfile=output)
+
+    if passphrase is not None:
+        for i in xrange(2):  # there are 2 prompts for the passphrase
+            child.expect('Enter passphrase:')
+            child.sendline(passphrase)
+
+    child.wait()
+    child.close()  # to get the return code
+
+    if child.exitstatus is not 0:
+        raise subprocess.CalledProcessError(
+            returncode=child.exitstatus,
+            cmd=cmd,
+            output=output.getvalue())
+
+
+def publish_snapshot_idempotent(name, passphrase=None):
+
+    if not already_published(name):
+        publish_snapshot(name, passphrase=passphrase)
+        return True
+    else:
+        return False
+
+
 def main():
 
     module = AnsibleModule(
         argument_spec = {
             'subject': {'required': True,
-                        'choices': 'mirror snapshot'.split()},
+                        'choices': 'mirror snapshot publish'.split()},
             'verb': {'required': False},
             'name': {'required': True},
             'within': {'required': False,
@@ -174,7 +222,9 @@ def main():
             'distribution': {'required': False},
             'components': {'type': 'list',
                            'required': False},
-            'architectures': {'type': 'list'}
+            'architectures': {'type': 'list'},
+
+            'gpg_passphrase': {'required': False},
             
         },
 
@@ -217,13 +267,33 @@ def main():
 
     elif module.params['subject'] == 'snapshot':
         if module.params['verb'] == 'create':
-            # snapshot create <name>-{timestamp} from mirror <name>
+            # snapshot create <name>_{timestamp} from mirror <name>
             try:
                 changed = snapshot_create_idempotent(
                     module.params['name'],
                     module.params['within'])
             except pxul.subprocess.CalledProcessError, e:
                 fail_subprocess(module, e, 'failed to create the snapshot')
+            except Exception, e:
+                module.fail_json(msg='Failure {}'.format(e),
+                                 traceback=traceback.format_exc())
+            else:
+                module.exit_json(changed=changed)
+
+    elif module.params['subject'] == 'publish':
+        if module.params['verb'] == 'snapshot':
+            # aptly snapshot publish <name>_{timestamp}
+            try:
+                changed = publish_snapshot_idempotent(
+                    module.params['name'],
+                    module.params['gpg_passphrase']
+                )
+            except subprocess.CalledProcessError, e:
+                module.fail_json(msg='failed to publish snapshot',
+                                 traceback=traceback.format_exc(),
+                                 returncode=e.returncode,
+                                 cmd=e.cmd,
+                                 output=e.output)
             except Exception, e:
                 module.fail_json(msg='Failure {}'.format(e),
                                  traceback=traceback.format_exc())

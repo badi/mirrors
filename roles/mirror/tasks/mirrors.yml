@@ -14,6 +14,7 @@
     - python-gnupg
     - libffi-dev
     - git-core
+    - python-pexpect
 
 - name: Upgrade Pip
   pip:
@@ -64,4 +65,13 @@
     verb: create
     name: "{{ item.name }}"
     within: "{{ item.within | default(0) }}"
+  with_items: mirrors
+
+- name: Publish snapshots
+  sudo: no
+  aptly:
+    subject: publish
+    verb: snapshot
+    name: "{{ item.name }}"
+    gpg_passphrase: "{{ mirror_gpg_password | default(None) }}"
   with_items: mirrors
