@@ -205,7 +205,6 @@ def publish_snapshot_idempotent(name, passphrase=None):
     else:
         return False
 
-
 def main():
 
     module = AnsibleModule(
@@ -213,7 +212,7 @@ def main():
             'subject': {'required': True,
                         'choices': 'mirror snapshot publish'.split()},
             'verb': {'required': False},
-            'name': {'required': True},
+            'name': {'required': False},
             'within': {'required': False,
                        'type': 'int',
                        'default': 0},
@@ -225,11 +224,10 @@ def main():
             'architectures': {'type': 'list'},
 
             'gpg_passphrase': {'required': False},
-            
+
         },
 
         required_together = [
-            ['subject', 'verb'],
             ['uri', 'distribution', 'components']
         ],
 

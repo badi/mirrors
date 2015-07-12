@@ -2,3 +2,8 @@
 
 - name: Update apt cache
   apt: update_cache=yes
+
+- name: Restart webserver
+  service:
+    name: apache2
+    state: restarted

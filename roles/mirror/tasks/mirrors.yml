@@ -15,6 +15,7 @@
     - libffi-dev
     - git-core
     - python-pexpect
+    - apache2
 
 - name: Upgrade Pip
   pip:
@@ -75,3 +76,9 @@
     name: "{{ item.name }}"
     gpg_passphrase: "{{ mirror_gpg_password | default(None) }}"
   with_items: mirrors
+
+- name: Configure webserver
+  template:
+    src: mirrors.conf.j2
+    dest: /etc/apache2/sites-available/000-default.conf
+  notify: Restart webserver

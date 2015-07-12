@@ -9,6 +9,8 @@ mirror_gpg_key_length: 2048
 mirror_gpg_expire_date: 0
 mirror_gpg_name_comment: Signing repos
 
+mirror_server_port: 80
+
 ## required, so not defined:
 # mirror_gpg_password: super-top-secret-password
 # mirror_gpg_name_real: First Last

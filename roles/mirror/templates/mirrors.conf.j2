@@ -1,0 +1,10 @@
+<VirtualHost *:{[ mirrors_server_port }}>
+  ServerName {{ ansible_hostname }}
+
+  DocumentRoot {{ mirror_server_docroot }}
+  <Directory {{ mirror_server_docroot }}>
+    Order deny,allow
+    Allow from all
+  </Directory>
+
+</VirtualHost>
