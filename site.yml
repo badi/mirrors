@@ -24,8 +24,10 @@
           architectures: ['amd64']
           within: "{{ 60*60 }}"
 
-        # - name: openstack-kilo-trusty
-        #   uri: http://ubuntu-cloud.archive.canonical.com/ubuntu
-        #   distribution: trusty-updates/kilo
-        #   components: ['main']
-        #   trusted_key: EC4926EA
+        - name: openstack-kilo-amd64
+          uri: http://ubuntu-cloud.archive.canonical.com/ubuntu
+          distribution: trusty-updates/kilo
+          components: ['main']
+          trusted_key: EC4926EA
+          architectures: ['amd64']
+          within: "{{ 60*60 }}"
