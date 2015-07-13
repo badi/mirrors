@@ -1,0 +1,65 @@
+---
+
+- hosts: mirror
+  user: vagrant
+  sudo: yes
+  vars_files:
+    - vars/secret.yml
+  roles:
+    - role: mirror
+
+      mirror_gpg_password: "{{ secret.gpg.password }}"
+      mirror_gpg_name_real: Badi Abdul-Wahid
+      mirror_gpg_name_email: abdulwahidc@gmail.com
+
+      mirrors:
+
+        - name: aptly-squeeze-amd64
+          uri: "http://repo.aptly.info/"
+          distribution: "squeeze"
+          components: ['main']
+          trusted_key: 2A194991
+          within: "{{ 60*60 }}"
+
+- hosts: test
+  user: vagrant
+  sudo: yes
+  tasks:
+
+    - name: Set the hosts file
+      copy:
+        src: hosts
+        dest: /etc/hosts
+        backup: yes
+
+    - name: Enable the mirror
+      lineinfile:
+        dest: /etc/apt/sources.list.d/aptly.list
+        create: yes
+        line: "deb http://{{ hostvars['mirror']['ansible_hostname'] }} squeeze main"
+      notify:
+        - Update apt cache
+
+    - name: Import the mirror key
+      apt_key:
+        url: "http://{{ hostvars['mirror']['ansible_hostname'] }}/Key.gpg"
+        state: present
+      notify:
+        - Update apt cache
+
+    - meta: flush_handlers
+
+    - name: Install aptly
+      apt:
+        pkg=aptly
+        state=present
+
+    - name: Location of aptly
+      shell: which aptly
+      register: aptly_location
+
+    - debug: var=aptly_location.stdout
+
+  handlers:
+    - name: Update apt cache
+      apt: update_cache=yes
