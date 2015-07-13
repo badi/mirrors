@@ -12,7 +12,6 @@
       mirror_gpg_password: "{{ secret.gpg.password }}"
       mirror_gpg_name_real: Badi Abdul-Wahid
       mirror_gpg_name_email: abdulwahidc@gmail.com
-      mirror_server_docroot: /home/vagrant/.aptly/public
 
       mirrors:
 

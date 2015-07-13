@@ -10,6 +10,7 @@ mirror_gpg_expire_date: 0
 mirror_gpg_name_comment: Signing repos
 
 mirror_server_port: 80
+mirror_server_docroot: "{{ ansible_env['PWD'] }}/.aptly/public"
 
 ## required, so not defined:
 # mirror_gpg_password: super-top-secret-password
