@@ -77,6 +77,10 @@
     gpg_passphrase: "{{ mirror_gpg_password | default(None) }}"
   with_items: mirrors
 
+- name: Make the GPG key available
+  sudo: no
+  shell: "gpg --export --armor > {{ mirror_server_docroot }}/Key.gpg"
+
 - name: Configure webserver
   template:
     src: mirrors.conf.j2
